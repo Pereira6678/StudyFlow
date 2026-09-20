@@ -1,4 +1,4 @@
-# Projeto Mobile - Sprint 1
+# Projeto Mobile
 
 Estrutura inicial criada com Expo + React Native + TypeScript.
 
