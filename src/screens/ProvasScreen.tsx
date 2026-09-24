@@ -1,15 +1,18 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
+import { useRouter } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
+import ProvaCard from '../components/ProvaCard';
+import { provas } from '../data/provas';
 
 const ProvasScreen: React.FC = () => {
-  const provas = [
-    { id: '1', materia: 'Desenvolvimento Mobile', nome: 'Prova 1', data: '15/09/2026' },
-    { id: '2', materia: 'Banco de Dados', nome: 'Avaliação de BD', data: '22/09/2026' },
-    { id: '3', materia: 'Engenharia de Software', nome: 'Prova Prática', data: '18/09/2026' },
-    { id: '4', materia: 'Programação Back-End', nome: 'Avaliação', data: '25/09/2026' }
-  ];
+  const router = useRouter();
+  const [busca, setBusca] = React.useState('');
+  const termoBusca = busca.trim().toLocaleLowerCase();
+  const provasFiltradas = provas.filter((prova) => (
+    `${prova.nome} ${prova.materia}`.toLocaleLowerCase().includes(termoBusca)
+  ));
 
   return (
     <View style={styles.container}>
@@ -18,18 +21,30 @@ const ProvasScreen: React.FC = () => {
         <Text style={styles.title}>Provas</Text>
         <Text style={styles.screenSubtitle}>{provas.length} avaliações agendadas</Text>
 
+        <TextInput
+          value={busca}
+          onChangeText={setBusca}
+          placeholder="Buscar prova ou matéria"
+          placeholderTextColor={colors.textLight}
+          style={localStyles.searchInput}
+          accessibilityLabel="Buscar prova ou matéria"
+        />
+
         <View style={localStyles.listContainer}>
-          {provas.map((prova) => (
-            <View key={prova.id} style={[styles.card, localStyles.card]}>
-              <View style={localStyles.dateBox}>
-                <Text style={localStyles.dateText}>{prova.data}</Text>
-              </View>
-              <View style={localStyles.infoContainer}>
-                <Text style={localStyles.cardTitle}>{prova.nome}</Text>
-                <Text style={localStyles.cardMateria}>{prova.materia}</Text>
-              </View>
-            </View>
-          ))}
+          {provasFiltradas.length > 0 ? (
+            provasFiltradas.map((prova) => (
+              <ProvaCard
+                key={prova.id}
+                prova={prova}
+                onPress={() => router.push({
+                  pathname: '/prova-detalhes',
+                  params: { id: prova.id }
+                })}
+              />
+            ))
+          ) : (
+            <Text style={localStyles.emptyMessage}>Nenhuma prova foi encontrada.</Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -37,40 +52,23 @@ const ProvasScreen: React.FC = () => {
 };
 
 const localStyles = StyleSheet.create({
+  searchInput: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    color: colors.textDark
+  },
   listContainer: {
     gap: spacing.md + 2,
     paddingBottom: spacing.xl
   },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  dateBox: {
-    backgroundColor: colors.danger,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    marginRight: spacing.md + 2,
-    minWidth: 70,
-    alignItems: 'center'
-  },
-  dateText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  infoContainer: {
-    flex: 1
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textDark,
-    marginBottom: 4
-  },
-  cardMateria: {
-    fontSize: 13,
-    color: colors.textMuted
+  emptyMessage: {
+    color: colors.textMuted,
+    fontSize: 14
   }
 });
 

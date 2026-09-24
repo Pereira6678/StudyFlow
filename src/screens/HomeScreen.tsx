@@ -4,8 +4,14 @@ import { Link } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
 import PrimaryButton from '../components/PrimaryButton';
+import StatCard from '../components/StatCard';
+import { useTarefas } from '../hooks/useTarefas';
+import { materias } from '../data/materias';
+import { provas } from '../data/provas';
 
 const HomeScreen: React.FC = () => {
+  const { quantidadeTarefasPendentes } = useTarefas();
+
   return (
     <View style={styles.container}>
       <Header subtitle="Organize seus estudos acadêmicos" />
@@ -16,18 +22,9 @@ const HomeScreen: React.FC = () => {
         </Text>
 
         <View style={localStyles.statsContainer}>
-          <View style={localStyles.statCard}>
-            <Text style={localStyles.statNumber}>4</Text>
-            <Text style={localStyles.statLabel}>Matérias</Text>
-          </View>
-          <View style={localStyles.statCard}>
-            <Text style={localStyles.statNumber}>3</Text>
-            <Text style={localStyles.statLabel}>Tarefas</Text>
-          </View>
-          <View style={localStyles.statCard}>
-            <Text style={localStyles.statNumber}>4</Text>
-            <Text style={localStyles.statLabel}>Provas</Text>
-          </View>
+          <StatCard value={materias.length} label="Matérias" />
+          <StatCard value={quantidadeTarefasPendentes} label="Tarefas" />
+          <StatCard value={provas.length} label="Provas" />
         </View>
 
         <Text style={styles.sectionTitle}>Acesso rápido</Text>
@@ -60,29 +57,6 @@ const localStyles = StyleSheet.create({
     gap: spacing.md,
     marginBottom: spacing.xxl + 4,
     justifyContent: 'space-between'
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.lg,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 4
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-    fontWeight: '500'
   }
 });
 

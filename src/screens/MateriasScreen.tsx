@@ -1,15 +1,17 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TextInput } from 'react-native';
+import { useRouter } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
+import MateriaCard from '../components/MateriaCard';
+import { materias } from '../data/materias';
 
 const MateriasScreen: React.FC = () => {
-  const materias = [
-    { id: '1', nome: 'Desenvolvimento Mobile', professor: 'Kellen Nery', cor: colors.primary },
-    { id: '2', nome: 'Banco de Dados', professor: 'A definir', cor: colors.success },
-    { id: '3', nome: 'Engenharia de Software', professor: 'A definir', cor: colors.warning },
-    { id: '4', nome: 'Programação Back-End', professor: 'A definir', cor: colors.danger }
-  ];
+  const router = useRouter();
+  const [busca, setBusca] = React.useState('');
+  const materiasFiltradas = materias.filter((materia) => (
+    materia.nome.toLocaleLowerCase().includes(busca.trim().toLocaleLowerCase())
+  ));
 
   return (
     <View style={styles.container}>
@@ -18,13 +20,30 @@ const MateriasScreen: React.FC = () => {
         <Text style={styles.title}>Matérias</Text>
         <Text style={styles.screenSubtitle}>{materias.length} matérias cursadas neste período</Text>
 
+        <TextInput
+          value={busca}
+          onChangeText={setBusca}
+          placeholder="Buscar matéria pelo nome"
+          placeholderTextColor={colors.textLight}
+          style={localStyles.searchInput}
+          accessibilityLabel="Buscar matéria pelo nome"
+        />
+
         <View style={localStyles.listContainer}>
-          {materias.map((materia) => (
-            <View key={materia.id} style={[styles.card, localStyles.card, { borderLeftColor: materia.cor }]}>
-              <Text style={localStyles.cardTitle}>{materia.nome}</Text>
-              <Text style={localStyles.cardSubtitle}>Professor(a): {materia.professor}</Text>
-            </View>
-          ))}
+          {materiasFiltradas.length > 0 ? (
+            materiasFiltradas.map((materia) => (
+              <MateriaCard
+                key={materia.id}
+                materia={materia}
+                onPress={() => router.push({
+                  pathname: '/materia-detalhes',
+                  params: { id: materia.id }
+                })}
+              />
+            ))
+          ) : (
+            <Text style={localStyles.emptyMessage}>Nenhuma matéria foi encontrada.</Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -32,22 +51,23 @@ const MateriasScreen: React.FC = () => {
 };
 
 const localStyles = StyleSheet.create({
+  searchInput: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    color: colors.textDark
+  },
   listContainer: {
     gap: spacing.md,
     paddingBottom: spacing.xl
   },
-  card: {
-    borderLeftWidth: 4
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textDark,
-    marginBottom: 4
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    color: colors.textMuted
+  emptyMessage: {
+    color: colors.textMuted,
+    fontSize: 14
   }
 });
 

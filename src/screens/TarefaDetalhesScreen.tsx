@@ -1,17 +1,31 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
+import { tarefasIniciais } from '../data/tarefas';
 
 const TarefaDetalhesScreen: React.FC = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams<{
+    id?: string;
+    titulo?: string;
+    materia?: string;
+    descricao?: string;
+    prazo?: string;
+    status?: string;
+    prioridade?: string;
+  }>();
+
+  const tarefaBase = tarefasIniciais.find((item) => item.id === params.id) ?? tarefasIniciais[0];
   const tarefa = {
-    id: '1',
-    titulo: 'Finalizar atividade de Mobile',
-    materia: 'Desenvolvimento Mobile',
-    descricao: 'Conclusão da atividade prática de React Native com navegação entre telas, conforme os requisitos da Sprint 1.',
-    prazo: '05/09/2026',
-    status: 'pendente',
-    prioridade: 'Alta'
+    ...tarefaBase,
+    titulo: params.titulo ?? tarefaBase.titulo,
+    materia: params.materia ?? tarefaBase.materia,
+    descricao: params.descricao ?? tarefaBase.descricao,
+    prazo: params.prazo ?? tarefaBase.prazo,
+    status: params.status ?? tarefaBase.status,
+    prioridade: params.prioridade ?? tarefaBase.prioridade
   };
 
   const getStatusColor = (status: string) => {
@@ -26,6 +40,9 @@ const TarefaDetalhesScreen: React.FC = () => {
     <View style={styles.container}>
       <Header subtitle="Detalhes da tarefa selecionada" />
       <ScrollView style={styles.content}>
+        <Pressable onPress={() => router.back()} style={localStyles.backButton}>
+          <Text style={localStyles.backButtonText}>Voltar</Text>
+        </Pressable>
         <Text style={styles.title}>Detalhes da Tarefa</Text>
 
         <View style={[styles.card, localStyles.card]}>
@@ -75,6 +92,19 @@ const TarefaDetalhesScreen: React.FC = () => {
 const localStyles = StyleSheet.create({
   card: {
     marginBottom: spacing.lg
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 6
+  },
+  backButtonText: {
+    color: colors.textDark,
+    fontWeight: '600'
   },
   header: {
     flexDirection: 'row',
