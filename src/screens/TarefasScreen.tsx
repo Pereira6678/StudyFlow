@@ -1,135 +1,154 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
-import { Link } from 'expo-router';
+import { ScrollView, View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
-import PrimaryButton from '../components/PrimaryButton';
+import TarefaCard from '../components/TarefaCard';
+import { useTarefas } from '../hooks/useTarefas';
 
 const TarefasScreen: React.FC = () => {
-  const [tarefas, setTarefas] = React.useState([
-    { id: '1', titulo: 'Finalizar atividade de Mobile', materia: 'Desenvolvimento Mobile', prazo: '05/09/2026', status: 'pendente' },
-    { id: '2', titulo: 'Estudar para avaliação', materia: 'Banco de Dados', prazo: '08/09/2026', status: 'pendente' },
-    { id: '3', titulo: 'Entregar trabalho de BD', materia: 'Banco de Dados', prazo: '10/09/2026', status: 'pendente' },
-    { id: '4', titulo: 'Ler capítulo do livro', materia: 'Engenharia de Software', prazo: '03/09/2026', status: 'concluida' },
-    { id: '5', titulo: 'Resolver exercícios', materia: 'Programação Back-End', prazo: '07/09/2026', status: 'concluida' }
-  ]);
+  const router = useRouter();
+  const {
+    tarefas,
+    alternarConclusao,
+    busca,
+    setBusca,
+    filtroStatus,
+    setFiltroStatus,
+    tarefasPendentes,
+    tarefasConcluidas
+  } = useTarefas();
 
-  const alternarConclusao = (id: string) => {
-    setTarefas((tarefasAtuais) => tarefasAtuais.map((tarefa) => (
-      tarefa.id === id
-        ? { ...tarefa, status: tarefa.status === 'pendente' ? 'concluida' : 'pendente' }
-        : tarefa
-    )));
+  const abrirDetalhes = (tarefa: (typeof tarefas)[number]) => {
+    const statusAtualizado = tarefa.status === 'pendente' ? 'concluida' : 'pendente';
+
+    alternarConclusao(tarefa.id);
+    router.push({
+      pathname: '/tarefa-detalhes',
+      params: {
+        id: tarefa.id,
+        titulo: tarefa.titulo,
+        materia: tarefa.materia,
+        descricao: tarefa.descricao,
+        prazo: tarefa.prazo,
+        status: statusAtualizado
+      }
+    });
   };
-
-  const tarefasPendentes = tarefas.filter(t => t.status === 'pendente');
-  const tarefasConcluidas = tarefas.filter(t => t.status === 'concluida');
 
   return (
     <View style={styles.container}>
       <Header subtitle="Acompanhe suas atividades" />
-      <ScrollView style={styles.content}>
+      <ScrollView
+        style={[styles.content, localStyles.scrollView]}
+        contentContainerStyle={localStyles.scrollContent}
+      >
         <Text style={styles.title}>Tarefas</Text>
         <Text style={styles.screenSubtitle}>
           {tarefasPendentes.length} pendente(s) e {tarefasConcluidas.length} concluída(s)
         </Text>
 
+        <TextInput
+          value={busca}
+          onChangeText={setBusca}
+          placeholder="Buscar tarefa pelo título"
+          placeholderTextColor={colors.textLight}
+          style={localStyles.searchInput}
+          accessibilityLabel="Buscar tarefa pelo título"
+        />
+
+        <View style={localStyles.filterContainer}>
+          {([
+            ['todas', 'Todas'],
+            ['pendentes', 'Pendentes'],
+            ['concluidas', 'Concluídas']
+          ] as const).map(([value, label]) => (
+            <Pressable
+              key={value}
+              onPress={() => setFiltroStatus(value)}
+              style={[localStyles.filterButton, filtroStatus === value && localStyles.filterButtonActive]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: filtroStatus === value }}
+            >
+              <Text style={[localStyles.filterButtonText, filtroStatus === value && localStyles.filterButtonTextActive]}>
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         <Text style={styles.sectionTitle}>Pendentes ({tarefasPendentes.length})</Text>
         <View style={localStyles.listContainer}>
           {tarefasPendentes.map((tarefa) => (
-            <Pressable
+            <TarefaCard
               key={tarefa.id}
-              onPress={() => alternarConclusao(tarefa.id)}
-              accessibilityRole="button"
-              accessibilityLabel={`Marcar tarefa ${tarefa.titulo} como concluída`}
-              style={[styles.card, localStyles.cardPendente]}
-            >
-              <View style={localStyles.cardHeader}>
-                <Text style={localStyles.cardTitle}>{tarefa.titulo}</Text>
-                <View style={[styles.badge, { backgroundColor: colors.warning }]}>
-                  <Text style={styles.badgeText}>Pendente</Text>
-                </View>
-              </View>
-              <Text style={localStyles.cardMeta}>{tarefa.materia}</Text>
-              <Text style={localStyles.cardPrazo}>Prazo: {tarefa.prazo}</Text>
-            </Pressable>
+              tarefa={tarefa}
+              onPress={() => abrirDetalhes(tarefa)}
+            />
           ))}
         </View>
 
         <Text style={[styles.sectionTitle, { marginTop: spacing.xxl }]}>Concluídas ({tarefasConcluidas.length})</Text>
         <View style={localStyles.listContainer}>
           {tarefasConcluidas.map((tarefa) => (
-            <Pressable
+            <TarefaCard
               key={tarefa.id}
-              onPress={() => alternarConclusao(tarefa.id)}
-              accessibilityRole="button"
-              accessibilityLabel={`Desmarcar tarefa ${tarefa.titulo} como pendente`}
-              style={[styles.card, localStyles.cardConcluida]}
-            >
-              <View style={localStyles.cardHeader}>
-                <Text style={localStyles.cardTitleConcluida}>✓ {tarefa.titulo}</Text>
-                <View style={[styles.badge, { backgroundColor: colors.success }]}>
-                  <Text style={styles.badgeText}>Concluída</Text>
-                </View>
-              </View>
-              <Text style={localStyles.cardMeta}>{tarefa.materia}</Text>
-            </Pressable>
+              tarefa={tarefa}
+              onPress={() => abrirDetalhes(tarefa)}
+            />
           ))}
         </View>
 
-        <View style={{ marginTop: spacing.xl, marginBottom: spacing.xl }}>
-          <Link href="/tarefa-detalhes" asChild>
-            <PrimaryButton label="Ver detalhes da tarefa" />
-          </Link>
-        </View>
       </ScrollView>
     </View>
   );
 };
 
 const localStyles = StyleSheet.create({
+  scrollView: {
+    flex: 1
+  },
+  scrollContent: {
+    paddingBottom: spacing.xl
+  },
   listContainer: {
     gap: spacing.md
   },
-  cardPendente: {
-    backgroundColor: colors.warningBg,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.warning
+  searchInput: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    color: colors.textDark
   },
-  cardConcluida: {
-    backgroundColor: colors.successBg,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.success
-  },
-  cardHeader: {
+  filterContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.sm,
-    gap: spacing.sm
+    gap: spacing.sm,
+    marginBottom: spacing.xl
   },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.textDark,
-    flex: 1
-  },
-  cardTitleConcluida: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#059669',
+  filterButton: {
     flex: 1,
-    textDecorationLine: 'line-through'
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    backgroundColor: colors.white
   },
-  cardMeta: {
-    fontSize: 13,
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary
+  },
+  filterButtonText: {
     color: colors.textMuted,
-    marginBottom: 4
-  },
-  cardPrazo: {
     fontSize: 12,
-    color: colors.textLight,
-    marginTop: 4
+    fontWeight: '600'
+  },
+  filterButtonTextActive: {
+    color: colors.white
   }
 });
 
