@@ -9,6 +9,7 @@ import { provas } from '../data/provas';
 const ProvasScreen: React.FC = () => {
   const router = useRouter();
   const [busca, setBusca] = React.useState('');
+  const temBusca = busca.trim().length > 0;
   const termoBusca = busca.trim().toLocaleLowerCase();
   const provasFiltradas = provas.filter((prova) => (
     `${prova.nome} ${prova.materia}`.toLocaleLowerCase().includes(termoBusca)
@@ -43,7 +44,11 @@ const ProvasScreen: React.FC = () => {
               />
             ))
           ) : (
-            <Text style={localStyles.emptyMessage}>Nenhuma prova foi encontrada.</Text>
+            <Text style={localStyles.emptyMessage}>
+              {temBusca
+                ? 'Nenhuma prova corresponde à busca. Tente buscar pelo nome da prova ou da matéria.'
+                : 'Nenhuma prova disponível no momento.'}
+            </Text>
           )}
         </View>
       </ScrollView>

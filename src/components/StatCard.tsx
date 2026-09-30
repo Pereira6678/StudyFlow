@@ -21,6 +21,8 @@ const localStyles = StyleSheet.create({
     borderRadius: 12,
     padding: spacing.lg,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 88,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -36,7 +38,9 @@ const localStyles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: colors.textMuted,
-    fontWeight: '500'
+    fontWeight: '500',
+    lineHeight: 16,
+    textAlign: 'center'
   }
 });
 

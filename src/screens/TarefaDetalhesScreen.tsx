@@ -46,8 +46,11 @@ const TarefaDetalhesScreen: React.FC = () => {
         <Text style={styles.title}>Detalhes da Tarefa</Text>
 
         <View style={[styles.card, localStyles.card]}>
-          <View style={localStyles.header}>
-            <Text style={localStyles.titleMain}>{tarefa.titulo}</Text>
+          <View style={localStyles.cardHeader}>
+            <View style={localStyles.titleGroup}>
+              <Text style={localStyles.cardEyebrow}>TAREFA</Text>
+              <Text style={localStyles.titleMain}>{tarefa.titulo}</Text>
+            </View>
             <View style={[styles.badge, { backgroundColor: getStatusColor(tarefa.status) }]}>
               <Text style={styles.badgeText}>{getStatusLabel(tarefa.status)}</Text>
             </View>
@@ -106,12 +109,22 @@ const localStyles = StyleSheet.create({
     color: colors.textDark,
     fontWeight: '600'
   },
-  header: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacing.lg,
     gap: spacing.md
+  },
+  titleGroup: {
+    flex: 1,
+    gap: spacing.sm
+  },
+  cardEyebrow: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textMuted,
+    letterSpacing: 0.5
   },
   titleMain: {
     fontSize: 18,

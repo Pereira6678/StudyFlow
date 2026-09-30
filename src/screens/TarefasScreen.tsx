@@ -36,6 +36,14 @@ const TarefasScreen: React.FC = () => {
     });
   };
 
+  const mensagemVazia = (status: 'pendente' | 'concluida') => {
+    const nomeStatus = status === 'pendente' ? 'pendente' : 'concluída';
+
+    return busca.trim()
+      ? `Nenhuma tarefa ${nomeStatus} corresponde à busca.`
+      : `Nenhuma tarefa ${nomeStatus} no momento.`;
+  };
+
   return (
     <View style={styles.container}>
       <Header subtitle="Acompanhe suas atividades" />
@@ -79,24 +87,32 @@ const TarefasScreen: React.FC = () => {
 
         <Text style={styles.sectionTitle}>Pendentes ({tarefasPendentes.length})</Text>
         <View style={localStyles.listContainer}>
-          {tarefasPendentes.map((tarefa) => (
-            <TarefaCard
-              key={tarefa.id}
-              tarefa={tarefa}
-              onPress={() => abrirDetalhes(tarefa)}
-            />
-          ))}
+          {tarefasPendentes.length > 0
+            ? tarefasPendentes.map((tarefa) => (
+                <TarefaCard
+                  key={tarefa.id}
+                  tarefa={tarefa}
+                  onPress={() => abrirDetalhes(tarefa)}
+                />
+              ))
+            : filtroStatus !== 'concluidas' && (
+                <Text style={localStyles.emptyMessage}>{mensagemVazia('pendente')}</Text>
+              )}
         </View>
 
         <Text style={[styles.sectionTitle, { marginTop: spacing.xxl }]}>Concluídas ({tarefasConcluidas.length})</Text>
         <View style={localStyles.listContainer}>
-          {tarefasConcluidas.map((tarefa) => (
-            <TarefaCard
-              key={tarefa.id}
-              tarefa={tarefa}
-              onPress={() => abrirDetalhes(tarefa)}
-            />
-          ))}
+          {tarefasConcluidas.length > 0
+            ? tarefasConcluidas.map((tarefa) => (
+                <TarefaCard
+                  key={tarefa.id}
+                  tarefa={tarefa}
+                  onPress={() => abrirDetalhes(tarefa)}
+                />
+              ))
+            : filtroStatus !== 'pendentes' && (
+                <Text style={localStyles.emptyMessage}>{mensagemVazia('concluida')}</Text>
+              )}
         </View>
 
       </ScrollView>
@@ -113,6 +129,10 @@ const localStyles = StyleSheet.create({
   },
   listContainer: {
     gap: spacing.md
+  },
+  emptyMessage: {
+    color: colors.textMuted,
+    fontSize: 14
   },
   searchInput: {
     backgroundColor: colors.white,
