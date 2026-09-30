@@ -26,11 +26,12 @@ const ProvaDetalhesScreen: React.FC = () => {
               <Text style={localStyles.sectionLabel}>Prova</Text>
               <Text style={localStyles.sectionValue}>{prova.nome}</Text>
             </View>
+            <View style={localStyles.divider} />
             <View style={localStyles.section}>
               <Text style={localStyles.sectionLabel}>Matéria</Text>
               <Text style={localStyles.sectionValue}>{prova.materia}</Text>
             </View>
-            <View style={localStyles.section}>
+            <View style={[localStyles.section, localStyles.lastSection]}>
               <Text style={localStyles.sectionLabel}>Data</Text>
               <Text style={localStyles.sectionValue}>{prova.data}</Text>
             </View>
@@ -60,8 +61,16 @@ const localStyles = StyleSheet.create({
   card: {
     marginBottom: spacing.lg
   },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginBottom: spacing.lg
+  },
   section: {
     marginBottom: spacing.lg
+  },
+  lastSection: {
+    marginBottom: 0
   },
   sectionLabel: {
     fontSize: 12,

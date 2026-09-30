@@ -9,6 +9,7 @@ import { materias } from '../data/materias';
 const MateriasScreen: React.FC = () => {
   const router = useRouter();
   const [busca, setBusca] = React.useState('');
+  const temBusca = busca.trim().length > 0;
   const materiasFiltradas = materias.filter((materia) => (
     materia.nome.toLocaleLowerCase().includes(busca.trim().toLocaleLowerCase())
   ));
@@ -42,7 +43,11 @@ const MateriasScreen: React.FC = () => {
               />
             ))
           ) : (
-            <Text style={localStyles.emptyMessage}>Nenhuma matéria foi encontrada.</Text>
+            <Text style={localStyles.emptyMessage}>
+              {temBusca
+                ? 'Nenhuma matéria corresponde à busca. Tente buscar por outro nome.'
+                : 'Nenhuma matéria disponível no momento.'}
+            </Text>
           )}
         </View>
       </ScrollView>

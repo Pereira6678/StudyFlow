@@ -15,12 +15,13 @@ const HomeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Header subtitle="Organize seus estudos acadêmicos" />
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={localStyles.scrollContent}>
         <Text style={styles.title}>StudyFlow</Text>
         <Text style={localStyles.description}>
           Acompanhe suas matérias, tarefas e provas em um só lugar, de forma simples e organizada.
         </Text>
 
+        <Text style={localStyles.sectionTitle}>Resumo</Text>
         <View style={localStyles.statsContainer}>
           <StatCard value={materias.length} label="Matérias" />
           <StatCard value={quantidadeTarefasPendentes} label="Tarefas" />
@@ -46,6 +47,9 @@ const HomeScreen: React.FC = () => {
 };
 
 const localStyles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: spacing.xl
+  },
   description: {
     fontSize: 14,
     color: colors.textMuted,
@@ -55,8 +59,14 @@ const localStyles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginBottom: spacing.xxl + 4,
+    marginBottom: spacing.xxl,
     justifyContent: 'space-between'
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textDark,
+    marginBottom: spacing.md
   }
 });
 

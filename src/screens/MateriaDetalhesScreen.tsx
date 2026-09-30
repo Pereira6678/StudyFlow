@@ -22,8 +22,15 @@ const MateriaDetalhesScreen: React.FC = () => {
 
         {materia ? (
           <View style={[styles.card, localStyles.card, { borderLeftColor: materia.cor }]}>
-            <Text style={localStyles.materiaName}>{materia.nome}</Text>
-            <Text style={localStyles.materiaProfessor}>Professor(a): {materia.professor}</Text>
+            <View style={localStyles.cardHeader}>
+              <View style={[localStyles.colorIndicator, { backgroundColor: materia.cor }]} />
+              <Text style={localStyles.materiaName}>{materia.nome}</Text>
+            </View>
+            <View style={localStyles.divider} />
+            <View style={localStyles.section}>
+              <Text style={localStyles.sectionLabel}>Professor(a)</Text>
+              <Text style={localStyles.sectionValue}>{materia.professor}</Text>
+            </View>
           </View>
         ) : (
           <Text style={localStyles.notFound}>Matéria não encontrada.</Text>
@@ -48,17 +55,44 @@ const localStyles = StyleSheet.create({
     fontWeight: '600'
   },
   card: {
-    borderLeftWidth: 4
+    borderLeftWidth: 4,
+    marginBottom: spacing.lg
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm
+  },
+  colorIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg
   },
   materiaName: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.textDark,
+    flex: 1
+  },
+  section: {
     marginBottom: spacing.sm
   },
-  materiaProfessor: {
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textMuted,
+    marginBottom: 4,
+    textTransform: 'uppercase'
+  },
+  sectionValue: {
     fontSize: 15,
-    color: colors.textMuted
+    color: colors.textDark,
+    lineHeight: 22
   },
   notFound: {
     fontSize: 14,
