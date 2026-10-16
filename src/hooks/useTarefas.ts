@@ -10,17 +10,16 @@ export function useTarefas() {
     throw new Error('TarefasContext não está disponível.');
   }
 
-  const { tarefas, setTarefas } = tarefasContext;
+  const {
+    tarefas,
+    carregando,
+    erroCarregamento,
+    erroAtualizacao,
+    recarregarTarefas,
+    alternarConclusao,
+  } = tarefasContext;
   const [busca, setBusca] = React.useState('');
   const [filtroStatus, setFiltroStatus] = React.useState<FiltroStatus>('todas');
-
-  const alternarConclusao = (id: string) => {
-    setTarefas((tarefasAtuais) => tarefasAtuais.map((tarefa) => (
-      tarefa.id === id
-        ? { ...tarefa, status: tarefa.status === 'pendente' ? 'concluida' : 'pendente' }
-        : tarefa
-    )));
-  };
 
   const termoBusca = busca.trim().toLocaleLowerCase();
   const tarefasFiltradas = tarefas.filter((tarefa) => {
@@ -37,7 +36,10 @@ export function useTarefas() {
 
   return {
     tarefas,
-    setTarefas,
+    carregando,
+    erroCarregamento,
+    erroAtualizacao,
+    recarregarTarefas,
     alternarConclusao,
     busca,
     setBusca,

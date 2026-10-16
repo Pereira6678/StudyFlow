@@ -1,7 +1,21 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { TarefasProvider } from '../src/context/TarefasContext';
+import { ensureAuthenticatedUser } from '../src/services/anonymousAuth';
 
 export default function RootLayout() {
+  useEffect(() => {
+    ensureAuthenticatedUser()
+      .then((user) => {
+        if (__DEV__) {
+          console.info('[Auth] Session ready. UID:', user.uid);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('[Auth] Initial authentication failed:', error);
+      });
+  }, []);
+
   return (
     <TarefasProvider>
       <Stack

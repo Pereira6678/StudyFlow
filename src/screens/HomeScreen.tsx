@@ -40,6 +40,10 @@ const HomeScreen: React.FC = () => {
         <Link href="/provas" asChild>
           <PrimaryButton label="📝 Provas" />
         </Link>
+        <View style={{ height: spacing.md }} />
+        <Link href="/biblioteca" asChild>
+          <PrimaryButton label="📖 Biblioteca" />
+        </Link>
         <View style={{ height: spacing.xl }} />
       </ScrollView>
     </View>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
+import { Pressable, ScrollView, View, Text, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
@@ -8,8 +8,13 @@ import { useTarefas } from '../hooks/useTarefas';
 
 const TarefasScreen: React.FC = () => {
   const router = useRouter();
+  const componenteMontado = React.useRef(false);
   const {
     tarefas,
+    carregando,
+    erroCarregamento,
+    erroAtualizacao,
+    recarregarTarefas,
     alternarConclusao,
     busca,
     setBusca,
@@ -19,19 +24,34 @@ const TarefasScreen: React.FC = () => {
     tarefasConcluidas
   } = useTarefas();
 
-  const abrirDetalhes = (tarefa: (typeof tarefas)[number]) => {
-    const statusAtualizado = tarefa.status === 'pendente' ? 'concluida' : 'pendente';
+  React.useEffect(() => {
+    componenteMontado.current = true;
+    return () => {
+      componenteMontado.current = false;
+    };
+  }, []);
 
-    alternarConclusao(tarefa.id);
+  const abrirDetalhes = async (tarefa: (typeof tarefas)[number]) => {
+    let tarefaAtualizada: typeof tarefa;
+    try {
+      const resultado = await alternarConclusao(tarefa.id);
+      if (!resultado || !componenteMontado.current) {
+        return;
+      }
+      tarefaAtualizada = resultado;
+    } catch {
+      return;
+    }
+
     router.push({
       pathname: '/tarefa-detalhes',
       params: {
-        id: tarefa.id,
-        titulo: tarefa.titulo,
-        materia: tarefa.materia,
-        descricao: tarefa.descricao,
-        prazo: tarefa.prazo,
-        status: statusAtualizado
+        id: tarefaAtualizada.id,
+        titulo: tarefaAtualizada.titulo,
+        materia: tarefaAtualizada.materia,
+        descricao: tarefaAtualizada.descricao,
+        prazo: tarefaAtualizada.prazo,
+        status: tarefaAtualizada.status
       }
     });
   };
@@ -53,7 +73,11 @@ const TarefasScreen: React.FC = () => {
       >
         <Text style={styles.title}>Tarefas</Text>
         <Text style={styles.screenSubtitle}>
-          {tarefasPendentes.length} pendente(s) e {tarefasConcluidas.length} concluída(s)
+          {carregando
+            ? 'Carregando suas tarefas...'
+            : erroCarregamento
+              ? 'Não foi possível carregar suas tarefas.'
+              : `${tarefasPendentes.length} pendente(s) e ${tarefasConcluidas.length} concluída(s)`}
         </Text>
 
         <TextInput
@@ -85,35 +109,71 @@ const TarefasScreen: React.FC = () => {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Pendentes ({tarefasPendentes.length})</Text>
-        <View style={localStyles.listContainer}>
-          {tarefasPendentes.length > 0
-            ? tarefasPendentes.map((tarefa) => (
-                <TarefaCard
-                  key={tarefa.id}
-                  tarefa={tarefa}
-                  onPress={() => abrirDetalhes(tarefa)}
-                />
-              ))
-            : filtroStatus !== 'concluidas' && (
-                <Text style={localStyles.emptyMessage}>{mensagemVazia('pendente')}</Text>
-              )}
-        </View>
+        {carregando ? (
+          <View style={localStyles.statusContainer}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={localStyles.statusMessage}>Carregando tarefas...</Text>
+          </View>
+        ) : erroCarregamento ? (
+          <View style={localStyles.statusContainer}>
+            <Text style={localStyles.errorMessage}>
+              Não foi possível carregar as tarefas: {erroCarregamento}
+            </Text>
+            <Pressable
+              onPress={() => void recarregarTarefas()}
+              style={localStyles.retryButton}
+              accessibilityRole="button"
+            >
+              <Text style={localStyles.retryButtonText}>Tentar novamente</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            {erroAtualizacao ? (
+              <Text style={localStyles.errorMessage}>
+                Não foi possível salvar a alteração: {erroAtualizacao}
+              </Text>
+            ) : null}
 
-        <Text style={[styles.sectionTitle, { marginTop: spacing.xxl }]}>Concluídas ({tarefasConcluidas.length})</Text>
-        <View style={localStyles.listContainer}>
-          {tarefasConcluidas.length > 0
-            ? tarefasConcluidas.map((tarefa) => (
-                <TarefaCard
-                  key={tarefa.id}
-                  tarefa={tarefa}
-                  onPress={() => abrirDetalhes(tarefa)}
-                />
-              ))
-            : filtroStatus !== 'pendentes' && (
-                <Text style={localStyles.emptyMessage}>{mensagemVazia('concluida')}</Text>
-              )}
-        </View>
+            {tarefas.length === 0 ? (
+              <Text style={localStyles.emptyMessage}>Nenhuma tarefa cadastrada.</Text>
+            ) : (
+              <>
+                <Text style={styles.sectionTitle}>Pendentes ({tarefasPendentes.length})</Text>
+                <View style={localStyles.listContainer}>
+                  {tarefasPendentes.length > 0
+                    ? tarefasPendentes.map((tarefa) => (
+                        <TarefaCard
+                          key={tarefa.id}
+                          tarefa={tarefa}
+                          onPress={() => void abrirDetalhes(tarefa)}
+                        />
+                      ))
+                    : filtroStatus !== 'concluidas' && (
+                        <Text style={localStyles.emptyMessage}>{mensagemVazia('pendente')}</Text>
+                      )}
+                </View>
+
+                <Text style={[styles.sectionTitle, { marginTop: spacing.xxl }]}>
+                  Concluídas ({tarefasConcluidas.length})
+                </Text>
+                <View style={localStyles.listContainer}>
+                  {tarefasConcluidas.length > 0
+                    ? tarefasConcluidas.map((tarefa) => (
+                        <TarefaCard
+                          key={tarefa.id}
+                          tarefa={tarefa}
+                          onPress={() => void abrirDetalhes(tarefa)}
+                        />
+                      ))
+                    : filtroStatus !== 'pendentes' && (
+                        <Text style={localStyles.emptyMessage}>{mensagemVazia('concluida')}</Text>
+                      )}
+                </View>
+              </>
+            )}
+          </>
+        )}
 
       </ScrollView>
     </View>
@@ -169,6 +229,32 @@ const localStyles = StyleSheet.create({
   },
   filterButtonTextActive: {
     color: colors.white
+  },
+  statusContainer: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xl
+  },
+  statusMessage: {
+    color: colors.textMuted,
+    fontSize: 14
+  },
+  errorMessage: {
+    color: colors.danger,
+    fontSize: 14,
+    marginBottom: spacing.md
+  },
+  retryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center'
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600'
   }
 });
 

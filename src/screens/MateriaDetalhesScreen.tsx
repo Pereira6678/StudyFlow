@@ -1,14 +1,68 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet, Pressable } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  Pressable
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { styles, colors, spacing } from '../styles/global';
 import Header from '../components/Header';
-import { materias } from '../data/materias';
+import { listarMateriasDoUsuario } from '../services/materiasService';
+import type { Materia } from '../types/studyflow';
 
 const MateriaDetalhesScreen: React.FC = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const materia = materias.find((item) => item.id === id);
+  const [materia, setMateria] = React.useState<Materia | null>(null);
+  const [carregando, setCarregando] = React.useState(true);
+  const [erro, setErro] = React.useState<string | null>(null);
+  const [tentativa, setTentativa] = React.useState(0);
+
+  React.useEffect(() => {
+    let ativo = true;
+
+    const carregarMateria = async () => {
+      setCarregando(true);
+      setErro(null);
+      setMateria(null);
+
+      if (!id) {
+        setCarregando(false);
+        return;
+      }
+
+      try {
+        const materias = await listarMateriasDoUsuario();
+        if (ativo) {
+          setMateria(materias.find((item) => item.id === id) ?? null);
+        }
+      } catch (error) {
+        if (ativo) {
+          if (error instanceof Error) {
+            const codigo = 'code' in error && typeof error.code === 'string'
+              ? `${error.code}: `
+              : '';
+            setErro(`${codigo}${error.message}`);
+          } else {
+            setErro(String(error));
+          }
+        }
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
+      }
+    };
+
+    void carregarMateria();
+
+    return () => {
+      ativo = false;
+    };
+  }, [id, tentativa]);
 
   return (
     <View style={styles.container}>
@@ -20,7 +74,27 @@ const MateriaDetalhesScreen: React.FC = () => {
 
         <Text style={styles.title}>Detalhes da Matéria</Text>
 
-        {materia ? (
+        {carregando ? (
+          <View style={localStyles.statusContainer}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={localStyles.statusMessage}>Carregando matéria...</Text>
+          </View>
+        ) : erro ? (
+          <View style={localStyles.errorContainer}>
+            <Text style={localStyles.errorMessage}>
+              Não foi possível carregar os detalhes da matéria. Verifique sua conexão ou suas permissões e tente novamente.
+            </Text>
+            <Text style={localStyles.errorDetails}>{erro}</Text>
+            <Pressable
+              onPress={() => setTentativa((valor) => valor + 1)}
+              accessibilityRole="button"
+              accessibilityLabel="Tentar carregar os detalhes novamente"
+              style={localStyles.retryButton}
+            >
+              <Text style={localStyles.retryButtonText}>Tentar novamente</Text>
+            </Pressable>
+          </View>
+        ) : materia ? (
           <View style={[styles.card, localStyles.card, { borderLeftColor: materia.cor }]}>
             <View style={localStyles.cardHeader}>
               <View style={[localStyles.colorIndicator, { backgroundColor: materia.cor }]} />
@@ -97,6 +171,36 @@ const localStyles = StyleSheet.create({
   notFound: {
     fontSize: 14,
     color: colors.textMuted
+  },
+  statusContainer: {
+    alignItems: 'center',
+    gap: spacing.md
+  },
+  statusMessage: {
+    color: colors.textMuted,
+    fontSize: 14
+  },
+  errorContainer: {
+    gap: spacing.md
+  },
+  errorMessage: {
+    color: colors.textDark,
+    fontSize: 14
+  },
+  errorDetails: {
+    color: colors.textMuted,
+    fontSize: 12
+  },
+  retryButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontWeight: '600'
   }
 });
 
