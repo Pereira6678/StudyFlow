@@ -1,0 +1,96 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function hasOnlyFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    function validOptionalId(data, documentId) {
+      return !data.keys().hasAny(['id']) || data.id == documentId;
+    }
+
+    function validMateria(data, materiaId) {
+      return hasOnlyFields(data, ['id', 'nome', 'professor', 'cor'])
+        && data.keys().hasAll(['nome', 'professor', 'cor'])
+        && validOptionalId(data, materiaId)
+        && data.nome is string
+        && data.professor is string
+        && data.cor is string;
+    }
+
+    function validTarefa(data, tarefaId) {
+      return hasOnlyFields(data, [
+          'id',
+          'titulo',
+          'materia',
+          'descricao',
+          'prazo',
+          'status',
+          'prioridade'
+        ])
+        && data.keys().hasAll([
+          'titulo',
+          'materia',
+          'descricao',
+          'prazo',
+          'status',
+          'prioridade'
+        ])
+        && validOptionalId(data, tarefaId)
+        && data.titulo is string
+        && data.materia is string
+        && data.descricao is string
+        && data.prazo is string
+        && data.prazo.matches('^[0-9]{2}/[0-9]{2}/[0-9]{4}$')
+        && data.status is string
+        && data.status in ['pendente', 'concluida']
+        && data.prioridade is string;
+    }
+
+    function validProva(data, provaId) {
+      return hasOnlyFields(data, ['id', 'materia', 'nome', 'data'])
+        && data.keys().hasAll(['materia', 'nome', 'data'])
+        && validOptionalId(data, provaId)
+        && data.materia is string
+        && data.nome is string
+        && data.data is string
+        && data.data.matches('^[0-9]{2}/[0-9]{2}/[0-9]{4}$');
+    }
+
+    match /usuarios/{uid}/materias/{materiaId} {
+      allow get, list: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && validMateria(request.resource.data, materiaId);
+      allow update: if isOwner(uid)
+        && validMateria(request.resource.data, materiaId);
+      allow delete: if isOwner(uid);
+    }
+
+    match /usuarios/{uid}/tarefas/{tarefaId} {
+      allow get, list: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && validTarefa(request.resource.data, tarefaId);
+      allow update: if isOwner(uid)
+        && validTarefa(request.resource.data, tarefaId);
+      allow delete: if isOwner(uid);
+    }
+
+    match /usuarios/{uid}/provas/{provaId} {
+      allow get, list: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && validProva(request.resource.data, provaId);
+      allow update: if isOwner(uid)
+        && validProva(request.resource.data, provaId);
+      allow delete: if isOwner(uid);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
