@@ -5,6 +5,7 @@ import {
   runTransaction,
   updateDoc,
 } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { tarefasIniciais } from '../data/tarefas';
 import type { Tarefa } from '../types/studyflow';
 import { ensureAuthenticatedUser } from './anonymousAuth';
@@ -28,10 +29,12 @@ export function listarTarefasDoUsuario(): Promise<Tarefa[]> {
   return listarTarefas(db, ensureAuthenticatedUser, firestoreOperations);
 }
 
-export function garantirTarefasIniciaisDoUsuario(): Promise<ResultadoImportacaoTarefas> {
+export function garantirTarefasIniciaisDoUsuario(
+  user?: Pick<User, 'uid'>,
+): Promise<ResultadoImportacaoTarefas> {
   return importarTarefasIniciais(
     db,
-    ensureAuthenticatedUser,
+    user ? async () => user : ensureAuthenticatedUser,
     tarefasIniciais,
     firestoreOperations,
   );

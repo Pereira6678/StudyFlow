@@ -4,6 +4,7 @@ import {
   getDocs,
   runTransaction,
 } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { materias } from '../data/materias';
 import type { Materia } from '../types/studyflow';
 import { ensureAuthenticatedUser } from './anonymousAuth';
@@ -32,8 +33,10 @@ export async function listarMateriasDoUsuario(): Promise<Materia[]> {
   return snapshot.docs.map((document) => toMateria(document.id, document.data()));
 }
 
-export async function garantirMateriasIniciaisDoUsuario(): Promise<void> {
-  await importarMateriasIniciais(db, ensureAuthenticatedUser, materias, {
+export async function garantirMateriasIniciaisDoUsuario(
+  user?: Pick<User, 'uid'>,
+): Promise<void> {
+  await importarMateriasIniciais(db, user ? async () => user : ensureAuthenticatedUser, materias, {
     collection,
     doc,
     getDocs,

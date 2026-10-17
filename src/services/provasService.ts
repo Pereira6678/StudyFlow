@@ -4,6 +4,7 @@ import {
   getDocs,
   runTransaction,
 } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { provas } from '../data/provas';
 import type { Prova } from '../types/studyflow';
 import { ensureAuthenticatedUser } from './anonymousAuth';
@@ -25,10 +26,12 @@ export function listarProvasDoUsuario(): Promise<Prova[]> {
   return listarProvas(db, ensureAuthenticatedUser, firestoreOperations);
 }
 
-export function garantirProvasIniciaisDoUsuario(): Promise<ResultadoImportacaoProvas> {
+export function garantirProvasIniciaisDoUsuario(
+  user?: Pick<User, 'uid'>,
+): Promise<ResultadoImportacaoProvas> {
   return importarProvasIniciais(
     db,
-    ensureAuthenticatedUser,
+    user ? async () => user : ensureAuthenticatedUser,
     provas,
     firestoreOperations,
   );
