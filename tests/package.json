@@ -1,0 +1,15 @@
+{
+  "name": "studyflow-firestore-rules-tests",
+  "private": true,
+  "scripts": {
+    "test": "firebase emulators:exec --config ../firebase.json --project demo-studyflow-rules --only firestore \"node --test --test-concurrency=1 firestore.rules.test.js\"",
+    "test:initial-materias": "firebase emulators:exec --config ../firebase.json --project demo-studyflow-rules --only firestore \"node --test --test-concurrency=1 firestore.initial-materias.test.js\"",
+    "test:service-tarefas": "firebase emulators:exec --config ../firebase.json --project demo-studyflow-rules --only firestore \"node --test --test-concurrency=1 firestore.tarefas-service.test.js\"",
+    "test:service-provas": "firebase emulators:exec --config ../firebase.json --project demo-studyflow-rules --only firestore \"node --test --test-concurrency=1 firestore.provas-service.test.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.0.0",
+    "firebase-tools": "^14.27.0"
+  }
+}
